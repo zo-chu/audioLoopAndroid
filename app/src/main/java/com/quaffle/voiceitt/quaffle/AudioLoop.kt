@@ -16,7 +16,7 @@ import android.os.AsyncTask
 public class AudioLoop {
 
     private val SAMPLE_RATE = 16000
-
+    private var runner : AsyncBuffer? = null
     var recorder: AudioRecord
     var isStopped: Boolean = false
 
@@ -38,30 +38,34 @@ public class AudioLoop {
 
     fun start() {
         recorder.startRecording()
-        AsyncBuffer(recorder).run()
+        isStopped = false
+        runner = AsyncBuffer(recorder)
+        runner?.run()
         println("Recording")
     }
 
     fun stop() {
-
+        runner?.stop()
         println("Stopped")
     }
 
     class AsyncBuffer : Runnable {
 
         private var recorder: AudioRecord
-        var stopped: Boolean = false
+        private var isStopped: Boolean = false
 
         constructor (recorder: AudioRecord ){
             this.recorder = recorder
         }
-
+        fun stop(){
+            isStopped = true
+        }
         override fun run() {
             println("async task")
 
             val buffer = ShortArray(1600)
 
-            while (!stopped) {
+            while (!isStopped) {
                 val n = recorder.read(buffer, 0, buffer.size, READ_BLOCKING)
 
                 var sum = 0.0
